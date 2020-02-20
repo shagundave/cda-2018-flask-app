@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - pip3 install --upgrade --user awscli
+      - export PATH=$HOME/.local/bin:$PATH
+      - clivr=$(aws --version)
+      - echo $clivr
+      - export AWS_ACCESS_KEY_ID=ASIxxxxx2
+      - export AWS_SECRET_ACCESS_KEY=MIxxxxxxxxxz
+      - export AWS_SESSION_TOKEN=FwoGZXIvYXdzEFsaDBOSmyXNiS6s3OyEbCKGAdNiBqDcPxr3Dee8ORv2soxifXe9ZbXHxouGj4P1uKt52we9ScgQdeZ26TtFF9yR0pYSxBmjA15y7gVkHQqD/xHS4y5cBMJGbhcZN33E0Um7ndNgee9f+spF1iNeYHpdWADht4sOaRwg7t8infLirgQEdHaehKh7pCjppxfFHw+BZaxMwuKAKOqjufIFMijPLe9NYV86eAPNubaS4LH/G81qGyh2jSR8xks+QKF1y4Ol+n+f88VR
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+     
+  build:
+    commands:
+      - echo Run unit test
+    #   - docker-compose run web python test_basic.py
+      - echo Build started on `date`
+      - echo Building the Docker image...          
+      - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - docker tag $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION      
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
